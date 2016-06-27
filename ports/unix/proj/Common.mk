@@ -32,7 +32,7 @@
 CCDEP=gcc
 CC=gcc
 
-CFLAGS=-g -Wall -DLWIP_DEBUG -pedantic -Werror \
+CFLAGS=-g -Wall -DLWIP_DEBUG -pedantic \
 	-Wparentheses -Wsequence-point -Wswitch-default \
 	-Wextra -Wundef -Wshadow -Wpointer-arith -Wcast-qual \
 	-Wc++-compat -Wwrite-strings -Wold-style-definition -Wcast-align \
@@ -62,7 +62,7 @@ include $(LWIPDIR)/Filelists.mk
 # ARCHFILES: architecture specific files.
 ARCHFILES=$(LWIPARCH)/perf.c $(LWIPARCH)/sys_arch.c $(LWIPARCH)/netif/tapif.c $(LWIPARCH)/netif/tunif.c \
 	$(LWIPARCH)/netif/unixif.c $(LWIPARCH)/netif/list.c $(LWIPARCH)/netif/tcpdump.c \
-	$(LWIPARCH)/netif/delif.c $(LWIPARCH)/netif/sio.c $(LWIPARCH)/netif/fifo.c
+	$(LWIPARCH)/netif/delif.c $(LWIPARCH)/netif/sio.c $(LWIPARCH)/netif/fifo.c $(LWIPARCH)/netif/socket.c
 
 LWIPFILES=$(LWIPNOAPPSFILES) $(ARCHFILES)
 LWIPOBJS=$(notdir $(LWIPFILES:.c=.o))
