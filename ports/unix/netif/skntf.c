@@ -172,12 +172,12 @@ low_level_output(struct netif *netif, struct pbuf *p)
 	/* initiate transfer(); */
 	pbuf_copy_partial(p, buf, bufsize, 0);
 	/* signal that packet should be sent(); */
-	written = write(tapif->fd, buf, bufsize);
+	written = send(tapif->fd, buf, bufsize, 0);
   }else{
 	/* initiate transfer(); */
 	pbuf_copy_partial(p, buf, p->tot_len, 0);
 	/* signal that packet should be sent(); */
-	written = write(tapif->fd, buf, p->tot_len);
+	written = send(tapif->fd, buf, p->tot_len, 0);
   }
 
   if (written == -1) {
@@ -209,7 +209,7 @@ low_level_input(struct netif *netif)
 
   /* Obtain the size of the packet and put it into the "len"
      variable. */
-  len = read(tapif->fd, buf, bufsize);
+  len = recv(tapif->fd, buf, bufsize, 0);
   if (len == (u16_t)-1) {
     perror("read returned -1");
     exit(1);

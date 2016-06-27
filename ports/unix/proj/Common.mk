@@ -62,7 +62,7 @@ include $(LWIPDIR)/Filelists.mk
 # ARCHFILES: architecture specific files.
 ARCHFILES=$(LWIPARCH)/perf.c $(LWIPARCH)/sys_arch.c $(LWIPARCH)/netif/tapif.c $(LWIPARCH)/netif/tunif.c \
 	$(LWIPARCH)/netif/unixif.c $(LWIPARCH)/netif/list.c $(LWIPARCH)/netif/tcpdump.c \
-	$(LWIPARCH)/netif/delif.c $(LWIPARCH)/netif/sio.c $(LWIPARCH)/netif/fifo.c $(LWIPARCH)/netif/socket.c
+	$(LWIPARCH)/netif/delif.c $(LWIPARCH)/netif/sio.c $(LWIPARCH)/netif/fifo.c $(LWIPARCH)/netif/skntf.c
 
 LWIPFILES=$(LWIPNOAPPSFILES) $(ARCHFILES)
 LWIPOBJS=$(notdir $(LWIPFILES:.c=.o))
