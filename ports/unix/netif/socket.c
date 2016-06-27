@@ -84,8 +84,8 @@
 #endif
 
 struct tapif {
-  /* Add whatever per-interface state that is needed here. */
-  int fd;
+	/* Add whatever per-interface state that is needed here. */
+	int fd;
 };
 
 /* Forward declarations. */
@@ -98,6 +98,8 @@ struct MAC_ADDR { char a[6]; };
 
 #define MAC_PTR(x) *((struct MAC_ADDR*)(x))
 #define PEXIT(str) do { perror(str); exit(1); } while(0)
+
+#define MAX_SIZE 8000
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -130,6 +132,16 @@ low_level_init(struct netif *netif,const char* dev_name)
 	if( ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) PEXIT("HWADDR");
 	MAC_PTR(netif->hwaddr) = MAC_PTR(ifr.ifr_hwaddr.sa_data);
 
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, dev_name, sizeof(ifr.ifr_name)-1);
+	if( ioctl(fd, SIOCGIFMTU, &ifr) < 0)
+		netif->mtu = 1500;
+	else
+		netif->mtu = ifr.ifr_mtu;
+
+	if(netif->mtu>MAX_SIZE)netif->mtu = MAX_SIZE;
+
+
 	if( bind(fd,(struct sockaddr* )&addr,sizeof(addr)) < 0) PEXIT("bind");
 	
 	netif_set_link_up(netif);
@@ -152,21 +164,22 @@ static err_t
 low_level_output(struct netif *netif, struct pbuf *p)
 {
   struct tapif *tapif = (struct tapif *)netif->state;
-  char buf[1514];
+  int bufsize = netif->mtu+14;
+  char buf[bufsize];
   ssize_t written;
 
-#if 0
-  if (((double)rand()/(double)RAND_MAX) < 0.2) {
-    printf("drop output\n");
-    return ERR_OK;
+  if(bufsize < (p->tot_len)){
+	/* initiate transfer(); */
+	pbuf_copy_partial(p, buf, bufsize, 0);
+	/* signal that packet should be sent(); */
+	written = write(tapif->fd, buf, bufsize);
+  }else{
+	/* initiate transfer(); */
+	pbuf_copy_partial(p, buf, p->tot_len, 0);
+	/* signal that packet should be sent(); */
+	written = write(tapif->fd, buf, p->tot_len);
   }
-#endif
 
-  /* initiate transfer(); */
-  pbuf_copy_partial(p, buf, p->tot_len, 0);
-
-  /* signal that packet should be sent(); */
-  written = write(tapif->fd, buf, p->tot_len);
   if (written == -1) {
     MIB2_STATS_NETIF_INC(netif, ifoutdiscards);
     perror("tapif: write");
@@ -190,25 +203,19 @@ low_level_input(struct netif *netif)
 {
   struct pbuf *p;
   u16_t len;
-  char buf[1514];
+  int bufsize = netif->mtu+14;
+  char buf[bufsize];
   struct tapif *tapif = (struct tapif *)netif->state;
 
   /* Obtain the size of the packet and put it into the "len"
      variable. */
-  len = read(tapif->fd, buf, sizeof(buf));
+  len = read(tapif->fd, buf, bufsize);
   if (len == (u16_t)-1) {
     perror("read returned -1");
     exit(1);
   }
 
   MIB2_STATS_NETIF_ADD(netif, ifinoctets, len);
-
-#if 0
-  if (((double)rand()/(double)RAND_MAX) < 0.2) {
-    printf("drop\n");
-    return NULL;
-  }
-#endif
 
   /* We allocate a pbuf chain of pbufs from the pool. */
   p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
